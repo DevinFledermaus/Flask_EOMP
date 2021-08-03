@@ -122,7 +122,7 @@ def add_product():
         category = request.form['category']
         date_created = datetime.datetime.now()
 
-        with sqlite3.connect('blog.db') as conn:
+        with sqlite3.connect('POS.db') as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO post("
                            "title,"
@@ -186,10 +186,10 @@ def remove_product(product_id):
 #
 #                 with sqlite3.connect('POS.db') as conn:
 #                     cursor = conn.cursor()
-#                     cursor.execute("UPDATE post SET content =? WHERE id=?", (put_data["content"], product_id))
+#                     cursor.execute("UPDATE post SET content =? WHERE id=?", (put_data["description"], product_id))
 #                     conn.commit()
 #
-#                     response["content"] = "Description updated successfully"
+#                     response["description"] = "Description updated successfully"
 #                     response["status_code"] = 200
 #     return response
 
