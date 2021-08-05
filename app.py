@@ -49,9 +49,9 @@ def init_product_table():
                      "title TEXT NOT NULL,"
                      "description TEXT NOT NULL,"
                      "price TEXT NOT NULL,"
-                     "category TEXT NOT NULL"
+                     "category TEXT NOT NULL,"
                      "date_created TEXT NOT NULL)")
-    print("blog table created successfully.")
+    print("product table created successfully.")
 
 
 init_user_table()
@@ -124,7 +124,7 @@ def add_product():
 
         with sqlite3.connect('POS.db') as conn:
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO post("
+            cursor.execute("INSERT INTO product("
                            "title,"
                            "description,"
                            "price,"
@@ -163,50 +163,55 @@ def remove_product(product_id):
     return response
 
 
-# @app.route('/edit-product/<int:product_id>/', methods=["PUT"])
-# @jwt_required()
-# def edit_product(product_id):
-#     response = {}
-#
-#     if request.method == "PUT":
-#         with sqlite3.connect('POS.db') as conn:
-#             incoming_data = dict(request.json)
-#             put_data = {}
-#
-#             if incoming_data.get("title") is not None:
-#                 put_data["title"] = incoming_data.get("title")
-#                 with sqlite3.connect('POS.db') as conn:
-#                     cursor = conn.cursor()
-#                     cursor.execute("UPDATE product SET title =? WHERE id=?", (put_data["title"], product_id))
-#                     conn.commit()
-#                     response['message'] = "Update was successfully"
-#                     response['status_code'] = 200
-#             if incoming_data.get("description") is not None:
-#                 put_data['description'] = incoming_data.get('description')
-#
-#                 with sqlite3.connect('POS.db') as conn:
-#                     cursor = conn.cursor()
-#                     cursor.execute("UPDATE post SET content =? WHERE id=?", (put_data["description"], product_id))
-#                     conn.commit()
-#
-#                     response["description"] = "Description updated successfully"
-#                     response["status_code"] = 200
-#     return response
+@app.route('/edit-product/<int:product_id>/', methods=["PUT"])
+@jwt_required()
+def edit_product(product_id):
+    response = {}
 
+    if request.method == "PUT":
+        with sqlite3.connect('POS.db') as conn:
+            incoming_data = dict(request.json)
+            put_data = {}
 
-# @app.route('/get-post/<int:post_id>/', methods=["GET"])
-# def get_post(post_id):
-#     response = {}
-#
-#     with sqlite3.connect("blog.db") as conn:
-#         cursor = conn.cursor()
-#         cursor.execute("SELECT * FROM post WHERE id=" + str(post_id))
-#
-#         response["status_code"] = 200
-#         response["description"] = "Blog post retrieved successfully"
-#         response["data"] = cursor.fetchone()
-#
-#     return jsonify(response)
+            if incoming_data.get("title") is not None:
+                put_data["title"] = incoming_data.get("title")
+                with sqlite3.connect('POS.db') as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE product SET title =? WHERE id=?", (put_data["title"], product_id))
+                    conn.commit()
+                    response['message'] = "Update to title was successful"
+                    response['status_code'] = 200
+            if incoming_data.get("description") is not None:
+                put_data['description'] = incoming_data.get('description')
+
+                with sqlite3.connect('POS.db') as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE product SET description =? WHERE id=?", (put_data["description"], product_id))
+                    conn.commit()
+
+                    response["description"] = "Update to description successful"
+                    response["status_code"] = 200
+            if incoming_data.get("price") is not None:
+                put_data['price'] = incoming_data.get('price')
+
+                with sqlite3.connect('POS.db') as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE product SET price =? WHERE id=?", (put_data["price"], product_id))
+                    conn.commit()
+
+                    response["price"] = "Update to price was successful"
+                    response["status_code"] = 200
+            if incoming_data.get("category") is not None:
+                put_data['category'] = incoming_data.get('category')
+
+                with sqlite3.connect('POS.db') as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE product SET category =? WHERE id=?", (put_data["category"], product_id))
+                    conn.commit()
+
+                    response["category"] = "Update to category was successful"
+                    response["status_code"] = 200
+    return response
 
 
 if __name__ == "__main__":
