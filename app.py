@@ -5,6 +5,7 @@ import datetime
 from flask import Flask, request
 from flask_jwt import JWT, jwt_required, current_identity
 from flask_cors import CORS
+from flask_mail import Mail, Message
 
 
 class User(object):
@@ -27,13 +28,10 @@ def fetch_users():
     return new_data
 
 
-users = fetch_users()
-
-
 def init_user_table():
     conn = sqlite3.connect('POS.db')
     print("Opened database successfully")
-
+    # creating user table
     conn.execute("CREATE TABLE IF NOT EXISTS user(user_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                  "first_name TEXT NOT NULL,"
                  "last_name TEXT NOT NULL,"
@@ -45,6 +43,7 @@ def init_user_table():
 
 def init_product_table():
     with sqlite3.connect('POS.db') as conn:
+        # creating product table
         conn.execute("CREATE TABLE IF NOT EXISTS product(id INTEGER PRIMARY KEY AUTOINCREMENT,"
                      "title TEXT NOT NULL,"
                      "description TEXT NOT NULL,"
@@ -56,6 +55,9 @@ def init_product_table():
 
 init_user_table()
 init_product_table()
+
+users = fetch_users()
+
 
 username_table = {u.username: u for u in users}
 userid_table = {u.id: u for u in users}
@@ -75,7 +77,16 @@ def identity(payload):
 app = Flask(__name__)
 app.debug = True
 app.config['SECRET_KEY'] = 'super-secret'
+# allows an extension on the token time limit
+app.config['JWT_EXPIRATION_DELTA'] = datetime.timedelta(seconds=4000)
 CORS(app)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = "fledermausdevin@gmail.com"
+app.config['MAIL_PASSWORD'] = "Fleddy97"
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
 
 jwt = JWT(app, authenticate, identity)
 
@@ -86,6 +97,7 @@ def protected():
     return '%s' % current_identity
 
 
+# Function to register users
 @app.route('/user-registration/', methods=["POST"])
 def user_registration():
     response = {}
@@ -96,6 +108,7 @@ def user_registration():
         last_name = request.form['last_name']
         username = request.form['username']
         password = request.form['password']
+        email = request.form['email']
 
         with sqlite3.connect("POS.db") as conn:
             cursor = conn.cursor()
@@ -107,11 +120,17 @@ def user_registration():
             conn.commit()
             response["message"] = "success"
             response["status_code"] = 201
-        return response
+
+            if response['status_code'] == 201:
+                msg = Message('success', sender='fledermausdevin@gmail.com', recipients=[email])
+                msg.body = 'Registration successful.'
+                mail.send(msg)
+                return "Message sent"
 
 
+# Function to add products to the cart
 @app.route('/add-product/', methods=["POST"])
-@jwt_required()
+# @jwt_required()
 def add_product():
     response = {}
 
@@ -136,6 +155,7 @@ def add_product():
         return response
 
 
+# function to view the entire cart
 @app.route('/get-cart/', methods=["GET"])
 def get_cart():
     response = {}
@@ -150,6 +170,7 @@ def get_cart():
     return response
 
 
+# function to remove a product from cart
 @app.route("/remove-product/<int:product_id>")
 @jwt_required()
 def remove_product(product_id):
@@ -163,6 +184,7 @@ def remove_product(product_id):
     return response
 
 
+# function to edit a specific characteristic of a product
 @app.route('/edit-product/<int:product_id>/', methods=["PUT"])
 @jwt_required()
 def edit_product(product_id):
@@ -214,5 +236,6 @@ def edit_product(product_id):
     return response
 
 
+# running program
 if __name__ == "__main__":
     app.run()
